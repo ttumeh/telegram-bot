@@ -1,70 +1,93 @@
 from datetime import date
+from datetime import timedelta
 from datetime import datetime
 import logging
 from os import name
-
 from telegram import Update, update, user
+from telegram.constants import CHATACTION_FIND_LOCATION
 from telegram.ext import Job, Updater, CommandHandler, CallbackContext, dispatcher
+from telegram.ext.utils.types import CD
 from telegram.utils.helpers import effective_message_type
+from telegram.utils.types import JSONDict
 
 # Enable logging
 logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 
 logger = logging.getLogger(__name__)
 
+msg = []
+i = 0
+
+
 def alarm(context: CallbackContext) -> None:
     """Send the alarm message."""
-
+    global i
     job = context.job
-    
-    if (len(str(job.next_t.hour)) == 1):
-        hour = "0"+str(job.next_t.hour+3)
-    else:
-        hour = str(job.next_t.hour+3)
-    if (len(str(job.next_t.minute)) == 1):
-        minute = "0"+str(job.next_t.minute)
-    else:
-        minute = str(job.next_t.minute)
-    if (len(str(job.next_t.day)) == 1):
-        day = "0"+str(job.next_t.day)
-    else:
-        day = str(job.next_t.day)
-    if (len(str(job.next_t.month)) == 1):
-        month = "0"+str(job.next_t.month)
-    else: 
-        month = str(job.next_t.month)    
-    
-    time = str(day) + "/" + str(month) + "/" + str(job.next_t.year) + " " + str(hour) + ":" + str(minute)
-    context.bot.send_message(job.context, text='This is a reminder to @{}.\nAt {} you said:'.format(job.name, time))
+
+    context.bot.send_message(
+        job.context,
+        text="This is a reminder for @{}.\n\n On {} {} sent this:".format(
+            user, time, msgsender
+        ),
+    )
+    context.bot.send_message(job.context, text="{}".format(msg[i]))
+    i = 1
 
 
 def remindme(update: Update, context: CallbackContext) -> None:
     """Add a job to the queue."""
+    global msgsender
+    global user
+    global time
+
     chat_id = update.message.chat_id
+    time = datetime.now().replace(microsecond=0)
+    time = time.strftime("%d/%m/%Y %H:%M")
+
+    msg.append(update.message.reply_to_message.text)
+
+    user = update.effective_user.username
+    msgsender = update.message.reply_to_message.from_user.name
+
     try:
-        # args[0] should contain the time for the timer in seconds
+
         due = int(context.args[0])
         unit = str(context.args[1])
 
-        user = update.effective_user.username
-
         if due < 0:
-            update.message.reply_text('Ootko vähän tyhmä ei aika voi alkaa miinuksella :DDDDD')
+            update.message.reply_text("Reminder cannot be set to negative value.")
             return
 
-        if unit != "seconds":
-            update.message.reply_text('En y,,ärrä (vielä)')
+        if (
+            unit != "seconds"
+            and unit != "minutes"
+            and unit != "hours"
+            and unit != "days"
+            and unit != "weeks"
+            and unit != "months"
+            and unit != "years"
+        ):
+            update.message.reply_text("I don't understand that.")
             return
 
-        context.job_queue.run_once(alarm, due, context=chat_id, name=str(user))
-
-        text = '@{} will be reminded in {} {}'.format(user, due, unit)
+        text = "@{} will be reminded in {} {}".format(user, due, unit)
         update.message.reply_text(text)
 
+        if unit == "minutes":
+            due = due * 60
+
+        if unit == "hours":
+            due = due * 3600
+
+        if unit == "days":
+            due = due * 86400
+
+        context.job_queue.run_once(alarm, due, context=(chat_id), name=str(chat_id))
+
     except (IndexError, ValueError):
-        update.message.reply_text('Usage: /remindme <value> <unit>')
+        update.message.reply_text("Usage: /remindme <value> <unit>. See /help for more")
 
 
 def main() -> None:
@@ -77,6 +100,8 @@ def main() -> None:
 
     dispatcher.add_handler(CommandHandler("remindme", remindme))
 
+    # TODO Announcements
+
     # Start the Bot
     updater.start_polling()
 
@@ -86,5 +111,5 @@ def main() -> None:
     updater.idle()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
