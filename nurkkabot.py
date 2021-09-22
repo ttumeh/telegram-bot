@@ -27,14 +27,17 @@ def alarm(context: CallbackContext) -> None:
         minute = "0"+str(job.next_t.minute)
     else:
         minute = str(job.next_t.minute)
-    if (len(str(job.next_t.second)) == 1):
-        second = "0"+str(job.next_t.second)
+    if (len(str(job.next_t.day)) == 1):
+        day = "0"+str(job.next_t.day)
     else:
-        second = str(job.next_t.minute)
+        day = str(job.next_t.day)
+    if (len(str(job.next_t.month)) == 1):
+        month = "0"+str(job.next_t.month)
+    else: 
+        month = str(job.next_t.month)    
     
-    
-    time = str(job.next_t.day) + "/" + str(job.next_t.month) + "/" + str(job.next_t.year) + " " + str(hour) + ":" + str(minute) + ":" + str(second)
-    context.bot.send_message(job.context, text='This is a reminder to @{}.\nAt {} you said: '.format(job.name, time))
+    time = str(day) + "/" + str(month) + "/" + str(job.next_t.year) + " " + str(hour) + ":" + str(minute)
+    context.bot.send_message(job.context, text='This is a reminder to @{}.\nAt {} you said:'.format(job.name, time))
 
 
 def remindme(update: Update, context: CallbackContext) -> None:
@@ -67,7 +70,7 @@ def remindme(update: Update, context: CallbackContext) -> None:
 def main() -> None:
     """Run bot."""
     # Create the Updater and pass it your bot's token.
-    updater = Updater("2009677583:AAHAAmmUaZ8XSp9B0bESyq_9d5gUEr05rRc")
+    updater = Updater("")
 
     # Get the dispatcher to register handlers
     dispatcher = updater.dispatcher
