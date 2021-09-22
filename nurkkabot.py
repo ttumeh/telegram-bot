@@ -19,7 +19,21 @@ def alarm(context: CallbackContext) -> None:
 
     job = context.job
     
-    time = str(job.next_t.day) + "/" + str(job.next_t.month) + "/" + str(job.next_t.year) + " " + str(job.next_t.hour+3) + ":" + str(job.next_t.minute) + ":" + str(job.next_t.second)
+    if (len(str(job.next_t.hour)) == 1):
+        hour = "0"+str(job.next_t.hour+3)
+    else:
+        hour = str(job.next_t.hour+3)
+    if (len(str(job.next_t.minute)) == 1):
+        minute = "0"+str(job.next_t.minute)
+    else:
+        minute = str(job.next_t.minute)
+    if (len(str(job.next_t.second)) == 1):
+        second = "0"+str(job.next_t.second)
+    else:
+        second = str(job.next_t.minute)
+    
+    
+    time = str(job.next_t.day) + "/" + str(job.next_t.month) + "/" + str(job.next_t.year) + " " + str(hour) + ":" + str(minute) + ":" + str(second)
     context.bot.send_message(job.context, text='This is a reminder to @{}.\nAt {} you said: '.format(job.name, time))
 
 
