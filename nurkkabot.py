@@ -48,6 +48,8 @@ def remindme(update: Update, context: CallbackContext) -> None:
 
     msg.append(update.message.reply_to_message.text)
 
+    print(len(msg))
+
     user = update.effective_user.username
     msgsender = update.message.reply_to_message.from_user.name
 
@@ -69,7 +71,7 @@ def remindme(update: Update, context: CallbackContext) -> None:
             and unit != "months"
             and unit != "years"
         ):
-            update.message.reply_text("I don't understand that.")
+            update.message.reply_text("I don't understand that. Please use plural (e.g. 'seconds')")
             return
 
         text = "@{} will be reminded in {} {}".format(user, due, unit)
@@ -83,6 +85,15 @@ def remindme(update: Update, context: CallbackContext) -> None:
 
         if unit == "days":
             due = due * 86400
+
+        if unit == "weeks":
+            due = due * 604800
+
+        if unit == "months":
+            due = due * 2629743
+
+        if unit == "years":
+            due = due * 31556926
 
         context.job_queue.run_once(alarm, due, context=(chat_id), name=str(chat_id))
 
