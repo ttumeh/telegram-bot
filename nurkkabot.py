@@ -33,7 +33,7 @@ def alarm(context: CallbackContext) -> None:
         ),
     )
     context.bot.send_message(job.context, text="{}".format(msg[i]))
-    i = 1
+    i += 1
 
 
 def remindme(update: Update, context: CallbackContext) -> None:
@@ -104,7 +104,7 @@ def remindme(update: Update, context: CallbackContext) -> None:
 def main() -> None:
     """Run bot."""
     # Create the Updater and pass it your bot's token.
-    updater = Updater("")
+    updater = Updater("2026194669:AAHVHjKalymeGylIkEkdaDxi5B8mJASeoSo")
 
     # Get the dispatcher to register handlers
     dispatcher = updater.dispatcher
