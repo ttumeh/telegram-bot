@@ -1,15 +1,24 @@
-from datetime import date
-from datetime import timedelta
-from datetime import datetime
+#-*- coding: utf-8 -*-
+#!/usr/bin/ python3
+
 import logging
 from os import name
 from telegram import Update, update, user
 from telegram.constants import CHATACTION_FIND_LOCATION
 from telegram.ext import Job, Updater, CommandHandler, CallbackContext, dispatcher
 from telegram.ext.utils.types import CD
+from telegram.files.photosize import PhotoSize
 from telegram.utils.helpers import effective_message_type
 from telegram.utils.types import JSONDict
+import random
+from urllib.request import urlopen
+from bs4 import BeautifulSoup
+import urllib.request
+import re
 
+
+msg = []
+user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7'
 # Enable logging
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
@@ -17,99 +26,40 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-msg = []
-i = 0
+def haeSivu(update: Update, context: CallbackContext) -> None:
 
+    headers={'User-Agent':user_agent,} 
 
-def alarm(context: CallbackContext) -> None:
-    """Send the alarm message."""
-    global i
-    job = context.job
+    if len(context.args) > 1: 
+        url = "https://www.iltalehti.fi/saa/" + context.args[1] + "/" + context.args[0]
+        url = url.strip(",")
+    else:
+        kaupunki = urllib.parse.quote(context.args[0])
+        url = ("https://www.iltalehti.fi/saa/Suomi/" + kaupunki)
 
-    context.bot.send_message(
-        job.context,
-        text="This is a reminder for @{}.\n\n On {} {} sent this:".format(
-            user, time, msgsender
-        ),
-    )
-    context.bot.send_message(job.context, text="{}".format(msg[i]))
-    i += 1
+    request=urllib.request.Request(url,None,headers) #The assembled request
+    response = urllib.request.urlopen(request)
+    data = response.read()
 
+    soup = BeautifulSoup(data, 'html.parser')
 
-def remindme(update: Update, context: CallbackContext) -> None:
-    """Add a job to the queue."""
-    global msgsender
-    global user
-    global time
+    discussion_div = soup.get_text()
 
-    chat_id = update.message.chat_id
-    time = datetime.now().replace(microsecond=0)
-    time = time.strftime("%d/%m/%Y %H:%M")
+    alku = discussion_div.find('Tällä hetkellä')
 
-    msg.append(update.message.reply_to_message.text)
+    loppu = discussion_div.find('Muista')
 
-    print(len(msg))
-
-    user = update.effective_user.username
-    msgsender = update.message.reply_to_message.from_user.name
-
-    try:
-
-        due = int(context.args[0])
-        unit = str(context.args[1])
-
-        if due < 0:
-            update.message.reply_text("Reminder cannot be set to negative value.")
-            return
-
-        if (
-            unit != "seconds"
-            and unit != "minutes"
-            and unit != "hours"
-            and unit != "days"
-            and unit != "weeks"
-            and unit != "months"
-            and unit != "years"
-        ):
-            update.message.reply_text("I don't understand that. Please use plural (e.g. 'seconds')")
-            return
-
-        text = "@{} will be reminded in {} {}".format(user, due, unit)
-        update.message.reply_text(text)
-
-        if unit == "minutes":
-            due = due * 60
-
-        if unit == "hours":
-            due = due * 3600
-
-        if unit == "days":
-            due = due * 86400
-
-        if unit == "weeks":
-            due = due * 604800
-
-        if unit == "months":
-            due = due * 2629743
-
-        if unit == "years":
-            due = due * 31556926
-
-        context.job_queue.run_once(alarm, due, context=(chat_id), name=str(chat_id))
-
-    except (IndexError, ValueError):
-        update.message.reply_text("Usage: /remindme <value> <unit>. See /help for more")
+    subs = discussion_div[alku:loppu]
+    update.message.reply_text(subs)
 
 
 def main() -> None:
     """Run bot."""
     # Create the Updater and pass it your bot's token.
     updater = Updater("")
-
-    # Get the dispatcher to register handlers
     dispatcher = updater.dispatcher
 
-    dispatcher.add_handler(CommandHandler("remindme", remindme))
+    dispatcher.add_handler(CommandHandler("weather", haeSivu))
 
     # TODO Announcements
 
