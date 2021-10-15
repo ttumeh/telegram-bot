@@ -3,6 +3,7 @@
 Telegram bot with some simple functions for cryptocurrency price tracking and weather.
 
 ## Commands
+![Telegram_zwP9MJGm6x](https://user-images.githubusercontent.com/89652218/137515419-403f09c0-0e6d-4ad7-bae1-6910116a72f7.png)
 
 ![Telegram_GWkBO3vtsa](https://user-images.githubusercontent.com/89652218/137515357-19fa6040-21d0-46c4-a8d0-1dd4a803fd98.png)
 
