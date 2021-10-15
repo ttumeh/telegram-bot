@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 def add_group(update: Update, context: CallbackContext):
     #Greets new group member
     for member in update.message.new_chat_members:
-        update.message.reply_text(f"Hello {member.full_name} ja welcome!")
+        update.message.reply_text(f"Hello {member.full_name} and welcome!")
 
 def get_weather(update: Update, context: CallbackContext) -> None:
     #If no argument provided, reply with the following and return
