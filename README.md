@@ -10,8 +10,8 @@ Bot replies with following:
 Price: $[]  
 Marketcap: $[]  
 All-time-high: $[]  
-24h Change: []  
-24H Volume: []  
+24h Change: []%  
+24H Volume: $[]  
 #### /Weather [city-name]  
 Bot replies with following:  
 Temperature: []°C  
