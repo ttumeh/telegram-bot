@@ -49,6 +49,10 @@ def get_weather(update: Update, context: CallbackContext) -> None:
     + "\n" + "Wind speed: " + wind + "m/s" + "\n" + "Sunrise: " + sunrise + " UTC" + "\n" + "Sunset: " + sunset + " UTC")
 
 def get_forecast(update: Update, context: CallbackContext) -> None:
+    #If no argument provided, reply with the following and return
+    if (len(context.args) == 0):
+        update.message.reply_text("No city provided!")
+        return
     #Requests a forecast JSON from the API for the city provided as an argument
     response = requests.get("http://api.openweathermap.org/data/2.5/forecast?q=" + context.args[0] + "&appid={API_KEY}]")
     #Load the JSON text into a variable
