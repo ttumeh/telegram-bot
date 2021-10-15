@@ -54,11 +54,11 @@ def get_forecast(update: Update, context: CallbackContext) -> None:
         update.message.reply_text("No city provided!")
         return
     #Requests a forecast JSON from the API for the city provided as an argument
-    response = requests.get("http://api.openweathermap.org/data/2.5/forecast?q=" + context.args[0] + "&appid=0a196d68d2d04e4df598b60ee7a33b4e")
+    response = requests.get("http://api.openweathermap.org/data/2.5/forecast?q=" + context.args[0] + "&appid={API_TOKEN}")
     #Load the JSON text into a variable
     weather = json.loads(response.text)
     #Set the wanted data into variables
-    forecast_time = [str(string_to_datetime(weather['list'][0]['dt_txt'])),
+    forecast_time =[str(string_to_datetime(weather['list'][0]['dt_txt'])),
                     str(string_to_datetime(weather['list'][1]['dt_txt'])),
                     str(string_to_datetime(weather['list'][2]['dt_txt'])),
                     str(string_to_datetime(weather['list'][3]['dt_txt']))]
@@ -66,10 +66,10 @@ def get_forecast(update: Update, context: CallbackContext) -> None:
                     str(toCelsius(int(weather['list'][1]['main']['temp']))),
                     str(toCelsius(int(weather['list'][2]['main']['temp']))),
                     str(toCelsius(int(weather['list'][3]['main']['temp'])))]
-    sky = [ "{0}".format(str(checkTheSky(weather['list'][0]['weather'][0]['icon']))),
-            "{0}".format(str(checkTheSky(weather['list'][1]['weather'][0]['icon']))),
-            "{0}".format(str(checkTheSky(weather['list'][2]['weather'][0]['icon']))),
-            "{0}".format(str(checkTheSky(weather['list'][3]['weather'][0]['icon'])))]
+    sky = [ "{0}".format(str(check_the_sky(weather['list'][0]['weather'][0]['icon']))),
+            "{0}".format(str(check_the_sky(weather['list'][1]['weather'][0]['icon']))),
+            "{0}".format(str(check_the_sky(weather['list'][2]['weather'][0]['icon']))),
+            "{0}".format(str(check_the_sky(weather['list'][3]['weather'][0]['icon'])))]
     #Bot replies with a forecast spanning 9 hours
     update.message.reply_text(
     forecast_time[0] + "\n" + temperature[0] + "\N{DEGREE SIGN}C"  + 
