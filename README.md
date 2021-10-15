@@ -4,8 +4,8 @@ Telegram bot with some simple functions for cryptocurrency price tracking and we
 
 ## Commands
 
-#### /Price [token-ticker]
+#### /Price [ticker]
 
-#### /Weather [city-name]  
+#### /Weather [cityname]  
 
-#### /Forecast [city-name]  
+#### /Forecast [cityname]  
