@@ -39,7 +39,7 @@ def get_weather(update: Update, context: CallbackContext) -> None:
     weather = json.loads(response.text)
     #Set the wanted values into variables
     temp = str(toCelsius(int(weather['main']['temp'])))
-    sky = "{0}".format(str(checkTheSky(weather['weather'][0]['icon'])))
+    sky = "{0}".format(str(check_the_sky(weather['weather'][0]['icon'])))
     feelslike = str(toCelsius(int(weather['main']['feels_like'])))
     wind = str(weather['wind']['speed'])
     sunrise = str(to_datetime(int(weather['sys']['sunrise'])))
@@ -131,7 +131,7 @@ def to_datetime(weather):
     date = date.strftime('%H:%M:%S')
     return date
 
-def checkTheSky(icon):
+def check_the_sky(icon):
     #Returns corresponding weather emoji to the icon in the JSON file
     if icon == "01d":
         return ("\U00002600")
