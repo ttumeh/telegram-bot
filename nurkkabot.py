@@ -15,11 +15,12 @@ from telegram.ext.utils.types import CD
 from telegram.ext import MessageHandler
 from telegram.ext.messagehandler import Filters
 
+API_TOKEN = ""
+BOT_TOKEN = ""
 # Enable logging
 logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
+    filename='logs.log', format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
-
 logger = logging.getLogger(__name__)
 
 def add_group(update: Update, context: CallbackContext):
@@ -28,13 +29,14 @@ def add_group(update: Update, context: CallbackContext):
         update.message.reply_text(f"Hello {member.full_name} and welcome!")
 
 def get_weather(update: Update, context: CallbackContext) -> None:
+    logging.info(update.message.from_user)
     #If no argument provided, reply with the following and return
     if (len(context.args) == 0):
         update.message.reply_text("No city provided!")
         return
     #Requests current weather JSON from the API for the city provided as an argument
     response = requests.get("http://api.openweathermap.org/data/2.5/weather?q=" + context.args[0] + 
-    "{API_KEY}")
+    "&appid=" + API_TOKEN)
     #Load the JSON text into a variable
     weather = json.loads(response.text)
     #Set the wanted values into variables
@@ -49,16 +51,17 @@ def get_weather(update: Update, context: CallbackContext) -> None:
     + "\n" + "Wind speed: " + wind + "m/s" + "\n" + "Sunrise: " + sunrise + " UTC" + "\n" + "Sunset: " + sunset + " UTC")
 
 def get_forecast(update: Update, context: CallbackContext) -> None:
+    logging.info(update.message.from_user)
     #If no argument provided, reply with the following and return
     if (len(context.args) == 0):
         update.message.reply_text("No city provided!")
         return
     #Requests a forecast JSON from the API for the city provided as an argument
-    response = requests.get("http://api.openweathermap.org/data/2.5/forecast?q=" + context.args[0] + "&appid={API_TOKEN}")
+    response = requests.get("http://api.openweathermap.org/data/2.5/forecast?q=" + context.args[0] + "&appid=" + API_TOKEN)
     #Load the JSON text into a variable
     weather = json.loads(response.text)
     #Set the wanted data into variables
-    forecast_time =[str(string_to_datetime(weather['list'][0]['dt_txt'])),
+    forecast_time = [str(string_to_datetime(weather['list'][0]['dt_txt'])),
                     str(string_to_datetime(weather['list'][1]['dt_txt'])),
                     str(string_to_datetime(weather['list'][2]['dt_txt'])),
                     str(string_to_datetime(weather['list'][3]['dt_txt']))]
@@ -79,6 +82,11 @@ def get_forecast(update: Update, context: CallbackContext) -> None:
     sky[3])
 
 def get_price(update: Update, context: CallbackContext) -> None:
+    logging.info(update.message.from_user)
+    #If no argument provided, reply with the following and return
+    if (len(context.args) == 0):
+        update.message.reply_text("No ticker provided!")
+        return
     #Requests JSON from the API for the token provided as an argument
     token = find_name(context.args[0].lower(), update, context)
     response = requests.get('https://api.coingecko.com/api/v3/simple/price?ids={0}&vs_currencies=usd&include_market_cap=true&include_24hr_vol=true&include_24hr_change=true'.format(token))
@@ -159,7 +167,7 @@ def toCelsius(kv):
 
 def main() -> None:
     # Create the Updater and pass it your bot's token.
-    updater = Updater("{BOT_TOKEN}")
+    updater = Updater(BOT_TOKEN)
     dispatcher = updater.dispatcher
     add_group_handle = MessageHandler(Filters.status_update.new_chat_members, add_group)
     dispatcher.add_handler(CommandHandler("weather", get_weather))
