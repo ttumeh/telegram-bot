@@ -1,16 +1,17 @@
+# -*- coding: utf-8 -*-
 # @Author: Tuomas Aaltonen <ttumeh>
 # @Date: 15.10.2021
 # @Telegram: tzkal
-#-*- coding: utf-8 -*-
 #!/usr/bin/ python3
 import json
 import requests
 import logging
 import math
+import time
 from datetime import datetime
 from telegram import Update
 from telegram.constants import CHATACTION_FIND_LOCATION
-from telegram.ext import Updater, CommandHandler, CallbackContext
+from telegram.ext import Updater, CommandHandler, CallbackContext, RegexHandler, PrefixHandler
 from telegram.ext.utils.types import CD
 from telegram.ext import MessageHandler
 from telegram.ext.messagehandler import Filters
@@ -22,6 +23,78 @@ logging.basicConfig(
     filename='logs.log', format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 logger = logging.getLogger(__name__)
+
+def anna_taa(update: Update, context: CallbackContext) -> None:
+    #Get the user that is given points, and the person that gives the points
+    gets_points = update.message.reply_to_message.from_user.username
+    gives_points = update.message.from_user.username
+    #Check if user is trying to give points to him/herself
+    if gives_points == gets_points:
+        update.message.reply_text("Cheating not allowed!")
+        return
+    #Check if user given points is a bot
+    if update.message.reply_to_message.from_user.is_bot == True:
+        update.message.reply_text("No thanks, I can print million of those if I wanted.")
+        return
+    #Open json file
+    with open('taa.json', 'r') as j:
+        data = json.load(j)
+    #Search for the user given points in the data
+    for s in range(len(data)):
+        if data[s]["username"] == gives_points:
+            #Remove 1 point from the user that gives away the point
+            data[s]["points"] -= 1
+            with open("taa.json", "w") as j:
+                #Dump the changes into the JSON
+                json.dump(data, j)  
+        if data[s]["username"] == gets_points:
+            #Give 1 points to the user that is given the point
+            data[s]["points"] += 1
+            with open("taa.json", "w") as j:
+                #Dump the changes into the JSON
+                json.dump(data, j)            
+            points = str(data[s]["points"])
+            #Bot replies with:
+            update.message.reply_text(str("tää :D given to {0}!\n{0} now has {1} tää :D").format(gets_points,points))
+            break
+    #If user that is given points not in data, create new user and append into data file    
+    else:
+        with open('taa.json', 'r') as j:
+            data = json.load(j)
+            data.append({"username":update.message.reply_to_message.from_user.username, "points": 1})
+            with open('taa.json', "w") as j:
+                json.dump(data, j)
+                #Bot replies with:
+                update.message.reply_text(str("tää :D given to {0}!\n{0} now has 1 tää :D").format(gets_points))
+
+def taa_stats(update: Update, context: CallbackContext):
+    supply = 0
+    holder_arr = []
+    with open('taa.json', 'r') as j:
+        data = json.load(j)
+        for s in range(len(data)):
+            supply += data[s]["points"]
+            holder_arr.append([data[s]["username"], (data[s]["points"])])
+        holder_arr.sort(key=lambda x:x[1], reverse=True)
+        print(holder_arr[0][0])
+        update.message.reply_text(str("Circulating supply: {0}\nTop 5 whales:\n" + get_holders(holder_arr)).format(supply))
+
+def my_taa(update: Update, context: CallbackContext):
+    get_points_user = update.message.from_user.username
+    with open('taa.json', 'r') as j:
+        data = json.load(j)
+    #Search for the user looking for the data
+    for s in range(len(data)):
+        if data[s]["username"] == get_points_user:
+            points = data[s]["points"]
+            #Bot replies with the amount of points the user has
+            update.message.reply_text(str("You have {0} tää!").format(points))
+
+def get_holders(taulukko):
+    holders = ""
+    for x in range(0,5):
+        holders += (taulukko[x][0] + ": " + str(taulukko[x][1]) + "\n")
+    return holders
 
 def add_group(update: Update, context: CallbackContext):
     #Greets new group member
@@ -170,10 +243,13 @@ def main() -> None:
     updater = Updater(BOT_TOKEN)
     dispatcher = updater.dispatcher
     add_group_handle = MessageHandler(Filters.status_update.new_chat_members, add_group)
+    dispatcher.add_handler(add_group_handle)
     dispatcher.add_handler(CommandHandler("weather", get_weather))
     dispatcher.add_handler(CommandHandler("forecast", get_forecast))
-    dispatcher.add_handler(add_group_handle)
     dispatcher.add_handler(CommandHandler("price", get_price))
+    dispatcher.add_handler(PrefixHandler("/", "tää", anna_taa))
+    dispatcher.add_handler(PrefixHandler("/", "täät", my_taa))
+    dispatcher.add_handler(CommandHandler("stats", taa_stats))
     # Start the Bot
     updater.start_polling()
     # Block until you press Ctrl-C or the process receives SIGINT, SIGTERM or
